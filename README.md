@@ -20,7 +20,8 @@ in dynamic fashion, no restart needed.
 ```sh
 git clone git@github.com:realh/multi-monitors-add-on.git
 cd multi-monitors-add-on
-cp -r multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions/
+mkdir -p ~/.local/share/gnome-shell/extensions
+ln -sr multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions
 ```
 
 Restart the shell and then enable the extension.
