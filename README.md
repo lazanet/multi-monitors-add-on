@@ -18,9 +18,13 @@ in dynamic fashion, no restart needed.
 # Installation from git
 
 ```sh
+# clone repo
 git clone git@github.com:realh/multi-monitors-add-on.git
+# cd into cloned repo
 cd multi-monitors-add-on
+# create a local shared gnome shell extensions dir
 mkdir -p ~/.local/share/gnome-shell/extensions
+# create a symbolic link in the extensions dir to this extension
 ln -sr multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions
 ```
 
