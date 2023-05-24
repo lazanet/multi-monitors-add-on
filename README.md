@@ -17,9 +17,11 @@ in dynamic fashion, no restart needed.
 
 # Installation from git
 
-    git clone git://github.com/realh/multi-monitors-add-on.git
-    cd multi-monitors-add-on
-    cp -r multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions/
+```sh
+git clone git://github.com/realh/multi-monitors-add-on.git
+cd multi-monitors-add-on
+cp -r multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions/
+```
 
 Restart the shell and then enable the extension.
 
