@@ -18,7 +18,7 @@ in dynamic fashion, no restart needed.
 # Installation from git
 
 ```sh
-git clone git://github.com/realh/multi-monitors-add-on.git
+git clone git@github.com:realh/multi-monitors-add-on.git
 cd multi-monitors-add-on
 cp -r multi-monitors-add-on@spin83 ~/.local/share/gnome-shell/extensions/
 ```
