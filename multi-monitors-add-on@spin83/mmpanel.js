@@ -28,7 +28,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as CtrlAltTab from 'resource:///org/gnome/shell/ui/ctrlAltTab.js';
 
-import {g, copyClass, currentExtension} from './globals.js'
+import {g, copyClass, currentExtension, unhideClass} from './globals.js'
 var {mmPanel} = g
 
 import * as MMCalendar from './mmcalendar.js'
@@ -49,7 +49,7 @@ export var StatusIndicatorsController = class StatusIndicatorsController  {
         this._extensionStateChangedId = Main.extensionManager.connect('extension-state-changed', 
                                             this._extensionStateChanged.bind(this));
 
-        this._transferIndicatorsId = this._settings.connect('changed::'+TRANSFER_INDICATORS_ID,
+        this._transferIndicatorsId = this._settings.connect('changed::' + TRANSFER_INDICATORS_ID,
                                                                         this.transferIndicators.bind(this));
     }
 
@@ -284,7 +284,7 @@ export var MultiMonitorsAppMenuButton  = (() => {
 	    _sync() {
 	    	if (!this._switchWorkspaceNotifyId)
 	    		return;
-	    	Panel.AppMenuButton.prototype._sync.call(this);
+	    	//Panel.AppMenuButton.prototype._sync.call(this);
 	    }
 	    
 	    _onDestroy() {
@@ -305,10 +305,10 @@ export var MultiMonitorsAppMenuButton  = (() => {
                 this.menu._app.disconnect(this.menu._windowsChangedId);
                 this.menu._windowsChangedId = 0;
             }
-            Panel.AppMenuButton.prototype._onDestroy.call(this);
+            //Panel.AppMenuButton.prototype._onDestroy.call(this);
 		}
 	};
-	copyClass(Panel.AppMenuButton, MultiMonitorsAppMenuButton);
+	// copyClass(unhideClass("Gjs_ui_panel_AppMenuButton"), MultiMonitorsAppMenuButton);
 	return GObject.registerClass({Signals: {'changed': {}},}, MultiMonitorsAppMenuButton);
 })();
 
@@ -316,24 +316,24 @@ export var MultiMonitorsActivitiesButton = (() => {
     let MultiMonitorsActivitiesButton = class MultiMonitorsActivitiesButton extends PanelMenu.Button {
     _init() {
             super._init(0.0, null, true);
-            this.accessible_role = Atk.Role.TOGGLE_BUTTON;
 
-            this.name = 'mmPanelActivities';
-
-            /* Translators: If there is no suitable word for "Activities"
-               in your language, you can use the word for "Overview". */
-            this._label = new St.Label({ text: _("Activities"),
-                                         y_align: Clutter.ActorAlign.CENTER });
-            this.add_child(this._label);
-
-            this.label_actor = this._label;
+            this.set({
+                name: 'mmPanelActivities',
+                accessible_role: Atk.Role.TOGGLE_BUTTON,
+                /* Translators: If there is no suitable word for "Activities"
+                   in your language, you can use the word for "Overview". */
+                accessible_name: _('Activities'),
+            });
+    
+            this.add_child(unhideClass("Gjs_ui_panel_WorkspaceIndicators"));
+    
 
             this._showingId = Main.overview.connect('showing', () => {
-                this.add_style_pseudo_class('overview');
+                this.add_style_pseudo_class('checked');
                 this.add_accessible_state (Atk.StateType.CHECKED);
             });
             this._hidingId = Main.overview.connect('hiding', () => {
-                this.remove_style_pseudo_class('overview');
+                this.remove_style_pseudo_class('checked');
                 this.remove_accessible_state (Atk.StateType.CHECKED);
             });
             
@@ -346,7 +346,7 @@ export var MultiMonitorsActivitiesButton = (() => {
             super._onDestroy();
         }
     }
-    copyClass(Panel.ActivitiesButton, MultiMonitorsActivitiesButton);
+    copyClass(unhideClass("Gjs_ui_panel_ActivitiesButton"), MultiMonitorsActivitiesButton);
     return GObject.registerClass(MultiMonitorsActivitiesButton);
 })();
 

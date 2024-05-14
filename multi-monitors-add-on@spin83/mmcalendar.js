@@ -33,7 +33,7 @@ import * as MessageList from 'resource:///org/gnome/shell/ui/messageList.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {g, copyClass} from './globals.js'
+import {g, copyClass, unhideClass} from './globals.js'
 var {mmIndicator, mmLayoutManager, mmOverview, mmPanel} = g
 
 const SHOW_WEEKDATE_KEY = 'show-weekdate';
@@ -65,6 +65,18 @@ class MultiMonitorsDoNotDisturbSwitch extends PopupMenu.Switch {
 export var MultiMonitorsCalendar = (() => {
 	let MultiMonitorsCalendar = class MultiMonitorsCalendar extends St.Widget {
 	    _init () {
+
+            super._init({
+	            // style_class: 'calendar',
+	            layout_manager: new Clutter.GridLayout(),
+	            reactive: true,
+	        });
+            // Start off with the current date
+	        this._selectedDate = new Date() + "1";
+            this._buildHeader();
+			this.connect('destroy', this._onDestroy.bind(this));
+            return
+
 	        this._weekStart = Shell.util_get_week_start();
 	        this._settings = new Gio.Settings({ schema_id: 'org.gnome.desktop.calendar' });
 	
@@ -74,22 +86,12 @@ export var MultiMonitorsCalendar = (() => {
 	        this._headerFormatWithoutYear = _('%OB');
 	        this._headerFormat = _('%OB %Y');
 	
-	        // Start off with the current date
-	        this._selectedDate = new Date();
 	
 	        this._shouldDateGrabFocus = false;
-	
-	        super._init({
-	            style_class: 'calendar',
-	            layout_manager: new Clutter.GridLayout(),
-	            reactive: true,
-	        });
-	
-	        this._buildHeader();
-			this.connect('destroy', this._onDestroy.bind(this));
 	    }
 	    
 	    _onDestroy() {
+            return
 	    	this._settings.disconnect(this._showWeekdateKeyId);
 	    }
 	};
@@ -143,8 +145,8 @@ export var MultiMonitorsEventsSection = (() => {
     _onDestroy() {
         this._appSys.disconnect(this._appInstalledChangedId);
     }};
-
-    copyClass(DateMenu.EventsSection, MultiMonitorsEventsSection);
+    
+    copyClass(unhideClass("Gjs_ui_dateMenu_EventsSection"), MultiMonitorsEventsSection);
 	return GObject.registerClass(MultiMonitorsEventsSection);
 })();
 
@@ -172,7 +174,7 @@ export var MultiMonitorsNotificationSection = (() => {
         }
     }};
 
-    copyClass(Calendar.NotificationSection, MultiMonitorsNotificationSection);
+    copyClass(unhideClass("Gjs_ui_calendar_NotificationSection"), MultiMonitorsNotificationSection);
     return GObject.registerClass(MultiMonitorsNotificationSection);
 })();
 
@@ -188,8 +190,8 @@ export var MultiMonitorsCalendarMessageList = (() => {
 
         this._sessionModeUpdatedId = 0;
 
-        this._placeholder = new Calendar.Placeholder();
-        this.add_child(this._placeholder);
+        // this._placeholder = new Calendar.Placeholder();
+        // this.add_child(this._placeholder);
 
         let box = new St.BoxLayout({ vertical: true,
                                      x_expand: true, y_expand: true });
@@ -238,9 +240,9 @@ export var MultiMonitorsCalendarMessageList = (() => {
         });
         hbox.add_child(this._clearButton);
 
-        this._placeholder.bind_property('visible',
-            this._clearButton, 'visible',
-            GObject.BindingFlags.INVERT_BOOLEAN);
+        // this._placeholder.bind_property('visible',
+        //     this._clearButton, 'visible',
+        //     GObject.BindingFlags.INVERT_BOOLEAN);
 
         this._sectionList = new St.BoxLayout({ style_class: 'message-list-sections',
                                                vertical: true,
@@ -323,7 +325,7 @@ export var MultiMonitorsMessagesIndicator  = (() => {
 
     };
 
-    copyClass(DateMenu.MessagesIndicator, MultiMonitorsMessagesIndicator);
+    copyClass(unhideClass("Gjs_ui_dateMenu_MessagesIndicator"), MultiMonitorsMessagesIndicator);
     return GObject.registerClass(MultiMonitorsMessagesIndicator);
 })();
 
@@ -334,7 +336,6 @@ export var MultiMonitorsDateMenuButton  = (() => {
         let vbox;
 
         super._init(0.5);
-        /*
         this._clockDisplay = new St.Label({ style_class: 'clock' });
         this._clockDisplay.clutter_text.y_align = Clutter.ActorAlign.CENTER;
         this._clockDisplay.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
@@ -375,15 +376,14 @@ export var MultiMonitorsDateMenuButton  = (() => {
             layout.frozen = !DateMenu._isToday(date);
             this._eventsItem.setDate(date);
         });
-        // this._date = new DateMenu.TodayButton(this._calendar);
-        this._date = new St.Button(this._calendar);
+        // this._date = GObject.Object.new(GObject.type_from_name("Gjs_js_ui_dateMenu_TodayButton")).constructor(this._date);
 
         this.menu.connect('open-state-changed', (menu, isOpen) => {
             // Whenever the menu is opened, select today
             if (isOpen) {
                 let now = new Date();
                 this._calendar.setDate(now);
-                this._date.setDate(now);
+                // this._date.setDate(now);
                 this._eventsItem.setDate(now);
             }
         });
@@ -392,6 +392,7 @@ export var MultiMonitorsDateMenuButton  = (() => {
         this._messageList = new MultiMonitorsCalendarMessageList();
         hbox.add_child(this._messageList);
 
+        /*
         // Fill up the second column
         const boxLayout = new DateMenu.CalendarColumnLayout([this._calendar, this._date]);
         vbox = new St.Widget({ style_class: 'datemenu-calendar-column',
@@ -415,6 +416,7 @@ export var MultiMonitorsDateMenuButton  = (() => {
 
         this._eventsItem = new MultiMonitorsEventsSection();
         displaysBox.add_child(this._eventsItem);
+        */
 
         this._clock = new GnomeDesktop.WallClock();
         this._clock.bind_property('clock', this._clockDisplay, 'text', GObject.BindingFlags.SYNC_CREATE);
@@ -422,14 +424,11 @@ export var MultiMonitorsDateMenuButton  = (() => {
 
         this._sessionModeUpdatedId = Main.sessionMode.connect('updated', this._sessionUpdated.bind(this));
         this._sessionUpdated();
-        */
     }
 
     _onDestroy() {
-        /*
         Main.sessionMode.disconnect(this._sessionModeUpdatedId);
         this._clock.disconnect(this._clockNotifyTimezoneId);
-        */
         super._onDestroy();
     }};
 
