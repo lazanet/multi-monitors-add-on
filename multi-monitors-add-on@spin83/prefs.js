@@ -15,30 +15,24 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, visit https://www.gnu.org/licenses/.
 */
 
-const Lang = imports.lang;
+import Adw from 'gi://Adw';
+import GObject from 'gi://GObject';
+import Gdk from 'gi://Gdk';
+import Gtk from 'gi://Gtk';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 
-const GObject = imports.gi.GObject;
-const Gdk = imports.gi.Gdk;
-const Gtk = imports.gi.Gtk;
-const Gio = imports.gi.Gio;
-const GLib = imports.gi.GLib;
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-const Gettext = imports.gettext.domain('multi-monitors-add-on');
-const _ = Gettext.gettext;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const MultiMonitors = ExtensionUtils.getCurrentExtension();
-const Convenience = MultiMonitors.imports.convenience;
-
-const SHOW_INDICATOR_ID = 'show-indicator';
-const SHOW_PANEL_ID = 'show-panel';
-const SHOW_ACTIVITIES_ID = 'show-activities';
-const SHOW_APP_MENU_ID = 'show-app-menu';
-const SHOW_DATE_TIME_ID = 'show-date-time';
-const THUMBNAILS_SLIDER_POSITION_ID = 'thumbnails-slider-position';
-const AVAILABLE_INDICATORS_ID = 'available-indicators';
-const TRANSFER_INDICATORS_ID = 'transfer-indicators';
-const ENABLE_HOT_CORNERS = 'enable-hot-corners';
+export const SHOW_INDICATOR_ID = 'show-indicator';
+export const SHOW_PANEL_ID = 'show-panel';
+export const SHOW_ACTIVITIES_ID = 'show-activities';
+export const SHOW_APP_MENU_ID = 'show-app-menu';
+export const SHOW_DATE_TIME_ID = 'show-date-time';
+export const THUMBNAILS_SLIDER_POSITION_ID = 'thumbnails-slider-position';
+export const AVAILABLE_INDICATORS_ID = 'available-indicators';
+export const TRANSFER_INDICATORS_ID = 'transfer-indicators';
+export const ENABLE_HOT_CORNERS = 'enable-hot-corners';
 
 const Columns = {
     INDICATOR_NAME: 0,
@@ -46,9 +40,9 @@ const Columns = {
 };
 
 
-var MultiMonitorsPrefsWidget = GObject.registerClass(
+export var MultiMonitorsPrefsWidget = GObject.registerClass(
 class MultiMonitorsPrefsWidget extends Gtk.Grid {
-    _init() {
+    _init(p) {
         super._init({
             margin_top: 6, margin_end: 6, margin_bottom: 6, margin_start: 6
         });
@@ -57,8 +51,8 @@ class MultiMonitorsPrefsWidget extends Gtk.Grid {
 
         this.set_orientation(Gtk.Orientation.VERTICAL);
 
-        this._settings = Convenience.getSettings();
-        this._desktopSettings = Convenience.getSettings("org.gnome.desktop.interface");
+        this._settings = p.getSettings();
+        this._desktopSettings = p.getSettings("org.gnome.desktop.interface");
 
         this._display = Gdk.Display.get_default();
         this._monitors = this._display.get_monitors()
@@ -99,15 +93,15 @@ class MultiMonitorsPrefsWidget extends Gtk.Grid {
         let toolbar = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL});
         toolbar.get_style_context().add_class("inline-toolbar");
 
-        this._settings.connect('changed::'+TRANSFER_INDICATORS_ID, Lang.bind(this, this._updateIndicators));
+        this._settings.connect('changed::'+TRANSFER_INDICATORS_ID, this._updateIndicators.bind(this));
         this._updateIndicators();
 
         let addTButton = new Gtk.Button({ icon_name: "list-add" });
-        addTButton.connect('clicked', Lang.bind(this, this._addIndicator));
+        addTButton.connect('clicked', this._addIndicator.bind(this));
         toolbar.append(addTButton);
 
         let removeTButton = new Gtk.Button({ icon_name: "list-remove" });
-        removeTButton.connect('clicked', Lang.bind(this, this._removeIndicator));
+        removeTButton.connect('clicked', this._removeIndicator.bind(this));
         toolbar.append(removeTButton);
         
         this.add(toolbar);
@@ -278,12 +272,16 @@ class MultiMonitorsPrefsWidget extends Gtk.Grid {
     }
 });
 
-function init() {
-    Convenience.initTranslations();
-}
+export default class MultiMonitorsPreferences extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        window._settings = this.getSettings();
 
-function buildPrefsWidget() {
-    let widget = new MultiMonitorsPrefsWidget();
+        let page = new Adw.PreferencesPage();
+        let group = new Adw.PreferencesGroup();
 
-    return widget;
+        let widget = new MultiMonitorsPrefsWidget(this);
+        group.add(widget);
+        page.add(group);
+        window.add(page);
+    }
 }

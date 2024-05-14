@@ -15,31 +15,34 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, visit https://www.gnu.org/licenses/.
 */
 
-const { St, Shell, Meta, Atk, Clutter, GObject } = imports.gi;
+import Atk from 'gi://Atk';
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
 
-const Main = imports.ui.main;
-const Panel = imports.ui.panel;
-const PopupMenu = imports.ui.popupMenu;
-const PanelMenu = imports.ui.panelMenu;
-const CtrlAltTab = imports.ui.ctrlAltTab;
-const ExtensionSystem = imports.ui.extensionSystem;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Panel from 'resource:///org/gnome/shell/ui/panel.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as CtrlAltTab from 'resource:///org/gnome/shell/ui/ctrlAltTab.js';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const CE = ExtensionUtils.getCurrentExtension();
-const MultiMonitors = CE.imports.extension;
-const Convenience = CE.imports.convenience;
-const MMCalendar = CE.imports.mmcalendar;
+import {g, copyClass, currentExtension} from './globals.js'
+var {mmPanel} = g
 
-const SHOW_ACTIVITIES_ID = 'show-activities';
-var SHOW_APP_MENU_ID = 'show-app-menu';
-const SHOW_DATE_TIME_ID = 'show-date-time';
-const AVAILABLE_INDICATORS_ID = 'available-indicators';
-const TRANSFER_INDICATORS_ID = 'transfer-indicators';
+import * as MMCalendar from './mmcalendar.js'
 
-var StatusIndicatorsController = class StatusIndicatorsController  {
+export const SHOW_ACTIVITIES_ID = 'show-activities';
+export var SHOW_APP_MENU_ID = 'show-app-menu';
+export const SHOW_DATE_TIME_ID = 'show-date-time';
+export const AVAILABLE_INDICATORS_ID = 'available-indicators';
+export const TRANSFER_INDICATORS_ID = 'transfer-indicators';
+
+export var StatusIndicatorsController = class StatusIndicatorsController  {
     constructor() {
         this._transfered_indicators = [];
-        this._settings = Convenience.getSettings();
+        this._settings = currentExtension().getSettings();
 
         this._updatedSessionId = Main.sessionMode.connect('updated', this._updateSessionIndicators.bind(this));
         this._updateSessionIndicators();
@@ -85,7 +88,7 @@ var StatusIndicatorsController = class StatusIndicatorsController  {
 				let panel = this._findPanel(monitor);
 				boxs.forEach((box) => {
 					if(Main.panel[box].contains(indicator.container) && panel) {
-						global.log('a '+box+ " > " + iname + " : "+ monitor);
+						console.log('a '+box+ " > " + iname + " : "+ monitor);
 						this._transfered_indicators.push({iname:iname, box:box, monitor:monitor});
 						Main.panel[box].remove_child(indicator.container);
 						if (show_app_menu && box === '_leftBox')
@@ -99,9 +102,9 @@ var StatusIndicatorsController = class StatusIndicatorsController  {
 	}
 
 	_findPanel(monitor) {
-		for (let i = 0; i < Main.mmPanel.length; i++) {
-			if (Main.mmPanel[i].monitorIndex == monitor) {
-				return Main.mmPanel[i];
+		for (let i = 0; i < mmPanel.length; i++) {
+			if (mmPanel[i].monitorIndex == monitor) {
+				return mmPanel[i];
 			}
 		}
 		return null;
@@ -116,7 +119,7 @@ var StatusIndicatorsController = class StatusIndicatorsController  {
 					panel = this._findPanel(element.monitor);
 				}
 				if(panel[element.box].contains(indicator.container)) {
-		    		global.log("r "+element.box+ " > " + element.iname + " : "+ element.monitor);
+		    		console.log("r "+element.box+ " > " + element.iname + " : "+ element.monitor);
 		    		panel[element.box].remove_child(indicator.container);
 		    		if (element.box === '_leftBox')
 		    			Main.panel[element.box].insert_child_at_index(indicator.container, 1);
@@ -158,13 +161,13 @@ var StatusIndicatorsController = class StatusIndicatorsController  {
 		}
 		if(available_indicators.length!=this._available_indicators.length) {
 			this._available_indicators = available_indicators;
-//			global.log(this._available_indicators);
+//			console.log(this._available_indicators);
 			this._settings.set_strv(AVAILABLE_INDICATORS_ID, this._available_indicators);
 		}
 	}
 };
 
-var MultiMonitorsAppMenuButton  = (() => {
+export var MultiMonitorsAppMenuButton  = (() => {
 	let MultiMonitorsAppMenuButton = class MultiMonitorsAppMenuButton extends PanelMenu.Button {
 	    _init(panel) {
 	    	if (panel.monitorIndex==undefined)
@@ -174,7 +177,7 @@ var MultiMonitorsAppMenuButton  = (() => {
 	    	this._actionOnWorkspaceGroupNotifyId = 0;
 	    	this._targetAppGroup = null;
 	    	this._lastFocusedWindow = null;
-	    	Panel.AppMenuButton.prototype._init.call(this, panel);
+	    	// Panel.AppMenuButton.prototype._init.call(this, panel);
 
 	    	this._windowEnteredMonitorId = global.display.connect('window-entered-monitor',
 			                					this._windowEnteredMonitor.bind(this));
@@ -230,7 +233,7 @@ var MultiMonitorsAppMenuButton  = (() => {
 	        			if (win.get_monitor() == this._monitorIndex){
 	        				if (win.has_focus()){
 	        					this._lastFocusedWindow = win;
-	//    	        			global.log(this._monitorIndex+": focus :"+win.get_title()+" : "+win.has_focus());
+	//    	        			console.log(this._monitorIndex+": focus :"+win.get_title()+" : "+win.has_focus());
 		        			return focusedApp;	
 	        				}
 	        				else
@@ -245,7 +248,7 @@ var MultiMonitorsAppMenuButton  = (() => {
 	    					this._targetAppGroup = focusedApp;
 	    					this._actionOnWorkspaceGroupNotifyId = this._targetAppGroup.connect('notify::action-group', 
 	    																				this._sync.bind(this));
-	//    				 	global.log(this._monitorIndex+": gConnect :"+win.get_title()+" : "+win.has_focus());
+	//    				 	console.log(this._monitorIndex+": gConnect :"+win.get_title()+" : "+win.has_focus());
 							}
 	        				break;
 	        			}
@@ -255,13 +258,13 @@ var MultiMonitorsAppMenuButton  = (() => {
 	
 	        for (let i = 0; i < this._startingApps.length; i++)
 	            if (this._startingApps[i].is_on_workspace(workspace)){
-	//            	global.log(this._monitorIndex+": newAppFocus");
+	//            	console.log(this._monitorIndex+": newAppFocus");
 	                return this._startingApps[i];
 	            }
 	        
 	        if (this._lastFocusedWindow && this._lastFocusedWindow.located_on_workspace(workspace) &&
 	        											this._lastFocusedWindow.get_monitor() == this._monitorIndex){
-	//			global.log(this._monitorIndex+": lastFocus :"+this._lastFocusedWindow.get_title());
+	//			console.log(this._monitorIndex+": lastFocus :"+this._lastFocusedWindow.get_title());
 				return tracker.get_window_app(this._lastFocusedWindow);
 	        }
 	
@@ -270,7 +273,7 @@ var MultiMonitorsAppMenuButton  = (() => {
 	        for (let i = 0; i < windows.length; i++) {
 	        	if(windows[i].get_monitor() == this._monitorIndex){
 	        		this._lastFocusedWindow = windows[i];
-	//        		global.log(this._monitorIndex+": appFind :"+windows[i].get_title());
+	//        		console.log(this._monitorIndex+": appFind :"+windows[i].get_title());
 	    			return tracker.get_window_app(windows[i]);
 	    		}
 	        }
@@ -305,11 +308,11 @@ var MultiMonitorsAppMenuButton  = (() => {
             Panel.AppMenuButton.prototype._onDestroy.call(this);
 		}
 	};
-	MultiMonitors.copyClass(Panel.AppMenuButton, MultiMonitorsAppMenuButton);
+	copyClass(Panel.AppMenuButton, MultiMonitorsAppMenuButton);
 	return GObject.registerClass({Signals: {'changed': {}},}, MultiMonitorsAppMenuButton);
 })();
 
-var MultiMonitorsActivitiesButton = (() => {
+export var MultiMonitorsActivitiesButton = (() => {
     let MultiMonitorsActivitiesButton = class MultiMonitorsActivitiesButton extends PanelMenu.Button {
     _init() {
             super._init(0.0, null, true);
@@ -321,7 +324,7 @@ var MultiMonitorsActivitiesButton = (() => {
                in your language, you can use the word for "Overview". */
             this._label = new St.Label({ text: _("Activities"),
                                          y_align: Clutter.ActorAlign.CENTER });
-            this.add_actor(this._label);
+            this.add_child(this._label);
 
             this.label_actor = this._label;
 
@@ -343,17 +346,17 @@ var MultiMonitorsActivitiesButton = (() => {
             super._onDestroy();
         }
     }
-    MultiMonitors.copyClass(Panel.ActivitiesButton, MultiMonitorsActivitiesButton);
+    copyClass(Panel.ActivitiesButton, MultiMonitorsActivitiesButton);
     return GObject.registerClass(MultiMonitorsActivitiesButton);
 })();
 
-const MULTI_MONITOR_PANEL_ITEM_IMPLEMENTATIONS = {
+export const MULTI_MONITOR_PANEL_ITEM_IMPLEMENTATIONS = {
     'activities': MultiMonitorsActivitiesButton,
     'appMenu': MultiMonitorsAppMenuButton,
     'dateMenu': MMCalendar.MultiMonitorsDateMenuButton,
 };
 
-var MultiMonitorsPanel = (() => {
+export var MultiMonitorsPanel = (() => {
     let MultiMonitorsPanel = class MultiMonitorsPanel extends St.Widget {
     _init(monitorIndex, mmPanelBox) {
         super._init({ name: 'panel',
@@ -383,7 +386,7 @@ var MultiMonitorsPanel = (() => {
             this.remove_style_pseudo_class('overview');
         });
 
-        mmPanelBox.panelBox.add(this);
+        mmPanelBox.panelBox.add_child(this);
         Main.ctrlAltTabManager.addGroup(this, _("Top Bar"), 'focus-top-bar-symbolic',
                                         { sortGroup: CtrlAltTab.SortGroup.TOP });
 
@@ -392,7 +395,7 @@ var MultiMonitorsPanel = (() => {
         this._workareasChangedId = global.display.connect('workareas-changed', () => this.queue_relayout());
         this._updatePanel();
 
-        this._settings = Convenience.getSettings();
+        this._settings = currentExtension().getSettings();
         this._showActivitiesId = this._settings.connect('changed::'+SHOW_ACTIVITIES_ID,
                                                             this._showActivities.bind(this));
         this._showActivities();
@@ -447,7 +450,7 @@ var MultiMonitorsPanel = (() => {
 
     _showAppMenu() {
         let name = 'appMenu';
-        if (this._settings.get_boolean(SHOW_APP_MENU_ID)) {
+        if (this._settings.get_boolean(SHOW_APP_MENU_ID) && false) {
             if (!this.statusArea[name]) {
                 let indicator = new MultiMonitorsAppMenuButton(this);
                 this.statusArea[name] = indicator;
@@ -515,6 +518,6 @@ var MultiMonitorsPanel = (() => {
         });
     }};
 
-    MultiMonitors.copyClass(Panel.Panel, MultiMonitorsPanel);
+    copyClass(Panel.Panel, MultiMonitorsPanel);
     return GObject.registerClass(MultiMonitorsPanel);
 })();

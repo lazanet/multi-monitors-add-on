@@ -15,26 +15,26 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, visit https://www.gnu.org/licenses/.
 */
 
-const { Clutter, GObject, St, Shell, GLib, Gio, Meta } = imports.gi;
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Shell from 'gi://Shell';
+import Gio from 'gi://Gio';
 
-const Main = imports.ui.main;
-const Params = imports.misc.params;
-const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const OverviewControls = imports.ui.overviewControls;
-const Overview = imports.ui.overview;
-const SearchController = imports.ui.searchController;
-const LayoutManager = imports.ui.layout;
-const Background = imports.ui.background;
-const WorkspacesView = imports.ui.workspacesView;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import * as Overview from 'resource:///org/gnome/shell/ui/overview.js';
+import * as OverviewControls from 'resource:///org/gnome/shell/ui/overviewControls.js';
+import * as SearchController from 'resource:///org/gnome/shell/ui/searchController.js';
+import * as LayoutManager from 'resource:///org/gnome/shell/ui/layout.js';
+import * as Background from 'resource:///org/gnome/shell/ui/background.js';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const CE = ExtensionUtils.getCurrentExtension();
-const MultiMonitors = CE.imports.extension;
-const Convenience = CE.imports.convenience;
+import {g, copyClass, currentExtension} from './globals.js'
+var {mmOverview, mmPanel} = g
 
 const THUMBNAILS_SLIDER_POSITION_ID = 'thumbnails-slider-position';
 
-var MultiMonitorsWorkspaceThumbnail = (() => {
+export var MultiMonitorsWorkspaceThumbnail = (() => {
     let MultiMonitorsWorkspaceThumbnail = class MultiMonitorsWorkspaceThumbnail extends St.Widget {
     _init(metaWorkspace, monitorIndex) {
         super._init({
@@ -99,7 +99,7 @@ var MultiMonitorsWorkspaceThumbnail = (() => {
                                                              vignette: false });
     }};
 
-    MultiMonitors.copyClass(WorkspaceThumbnail.WorkspaceThumbnail, MultiMonitorsWorkspaceThumbnail);
+    copyClass(WorkspaceThumbnail.WorkspaceThumbnail, MultiMonitorsWorkspaceThumbnail);
     return GObject.registerClass({
         Properties: {
             'collapse-fraction': GObject.ParamSpec.double(
@@ -114,7 +114,7 @@ var MultiMonitorsWorkspaceThumbnail = (() => {
     }, MultiMonitorsWorkspaceThumbnail);
 })();
 
-const MultiMonitorsThumbnailsBox = (() => {
+export const MultiMonitorsThumbnailsBox = (() => {
     let MultiMonitorsThumbnailsBox = class MultiMonitorsThumbnailsBox extends St.Widget {
     _init(scrollAdjustment, monitorIndex) {
 
@@ -131,7 +131,7 @@ const MultiMonitorsThumbnailsBox = (() => {
         Shell.util_set_hidden_from_pick(indicator, true);
 
         this._indicator = indicator;
-        this.add_actor(indicator);
+        this.add_child(indicator);
 
         // The porthole is the part of the screen we're showing in the thumbnails
         this._porthole = { width: global.stage.width, height: global.stage.height,
@@ -140,7 +140,7 @@ const MultiMonitorsThumbnailsBox = (() => {
         this._dropWorkspace = -1;
         this._dropPlaceholderPos = -1;
         this._dropPlaceholder = new St.Bin({ style_class: 'placeholder' });
-        this.add_actor(this._dropPlaceholder);
+        this.add_child(this._dropPlaceholder);
         this._spliceIndex = -1;
 
         this._targetScale = 0;
@@ -235,7 +235,7 @@ const MultiMonitorsThumbnailsBox = (() => {
             thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                                   this._porthole.width, this._porthole.height);
             this._thumbnails.push(thumbnail);
-            this.add_actor(thumbnail);
+            this.add_child(thumbnail);
 
             if (start > 0 && this._spliceIndex == -1) {
                 // not the initial fill, and not splicing via DND
@@ -263,7 +263,7 @@ const MultiMonitorsThumbnailsBox = (() => {
         this.queue_relayout();
     }};
 
-    MultiMonitors.copyClass(WorkspaceThumbnail.ThumbnailsBox, MultiMonitorsThumbnailsBox);
+    copyClass(WorkspaceThumbnail.ThumbnailsBox, MultiMonitorsThumbnailsBox);
     return GObject.registerClass({
         Properties: {
             'indicator-y': GObject.ParamSpec.double(
@@ -319,7 +319,7 @@ var MultiMonitorsSlidingControl = (() => {
         Main.overview.disconnect(this._windowDragEndId);
     }};
 
-    MultiMonitors.copyClass(OverviewControls.SlidingControl, MultiMonitorsSlidingControl);
+    copyClass(OverviewControls.SlidingControl, MultiMonitorsSlidingControl);
     return GObject.registerClass(MultiMonitorsSlidingControl);
 })();
 
@@ -333,7 +333,7 @@ var MultiMonitorsThumbnailsSlider = (() => {
         this.request_mode = Clutter.RequestMode.WIDTH_FOR_HEIGHT;
         this.reactive = true;
         this.track_hover = true;
-        this.add_actor(this._thumbnailsBox);
+        this.add_child(this._thumbnailsBox);
 
         this._monitorsChangedId = Main.layoutManager.connect('monitors-changed', this._updateSlide.bind(this));
         this._activeWorkspaceChangedId = global.workspace_manager.connect('active-workspace-changed',
@@ -351,12 +351,12 @@ var MultiMonitorsThumbnailsSlider = (() => {
         super._onDestroy();
     }};
 
-    MultiMonitors.copyClass(OverviewControls.ThumbnailsSlider, MultiMonitorsThumbnailsSlider);
+    copyClass(OverviewControls.ThumbnailsSlider, MultiMonitorsThumbnailsSlider);
     return GObject.registerClass(MultiMonitorsThumbnailsSlider);
 })();
 */
 
-var MultiMonitorsControlsManager = GObject.registerClass(
+export var MultiMonitorsControlsManager = GObject.registerClass(
 class MultiMonitorsControlsManager extends St.Widget {
     _init(index) {
         this._monitorIndex = index;
@@ -390,12 +390,12 @@ class MultiMonitorsControlsManager extends St.Widget {
 
         this._group = new St.BoxLayout({ name: 'mm-overview-group-'+index,
                                          x_expand: true, y_expand: true });
-        this.add_actor(this._group);
+        this.add_child(this._group);
 
         this._group.add_child(this._searchController);
-        //this._group.add_actor(this._thumbnailsSlider);
+        //this._group.add_child(this._thumbnailsSlider);
 
-        this._settings = Convenience.getSettings();
+        this._settings = currentExtension().getSettings();
 
         this._monitorsChanged();
         //this._thumbnailsSlider.slideOut();
@@ -457,8 +457,8 @@ class MultiMonitorsControlsManager extends St.Widget {
         let top_spacer_height = Main.layoutManager.primaryMonitor.height;
 
         let panelGhost_height = 0;
-        if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
-            panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
+        if (mmOverview[this._monitorIndex]._overview._panelGhost)
+            panelGhost_height = mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
 
         let allocation = Main.overview._overview._controls.allocation;
         let primaryControl_height = allocation.get_height();
@@ -467,7 +467,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         top_spacer_height -= primaryControl_height + panelGhost_height + bottom_spacer_height;
         top_spacer_height = Math.round(top_spacer_height);
 
-        let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
+        let spacer = mmOverview[this._monitorIndex]._overview._spacer;
         if (spacer.get_height()!=top_spacer_height) {
             this._spacer_height = top_spacer_height;
             spacer.set_height(top_spacer_height);
@@ -492,7 +492,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         }
         if (isNaN(geometry.x))
             return null;
-        //global.log("actualG+ i: "+this._monitorIndex+" x: "+geometry.x+" y: "+geometry.y+" width: "+geometry.width+" height: "+geometry.height);
+        //console.log("actualG+ i: "+this._monitorIndex+" x: "+geometry.x+" y: "+geometry.y+" width: "+geometry.width+" height: "+geometry.height);
         return geometry;
     }
 
@@ -587,7 +587,7 @@ class MultiMonitorsControlsManager extends St.Widget {
     }
 });
 
-var MultiMonitorsOverviewActor = GObject.registerClass(
+export var MultiMonitorsOverviewActor = GObject.registerClass(
 class MultiMonitorsOverviewActor extends St.BoxLayout {
     _init(index) {
         this._monitorIndex = index;
@@ -602,24 +602,24 @@ class MultiMonitorsOverviewActor extends St.BoxLayout {
         this.add_constraint(new LayoutManager.MonitorConstraint({ index: this._monitorIndex }));
 
         this._panelGhost = null;
-        if (Main.mmPanel) {
-            for (let idx in Main.mmPanel) {
-                if (Main.mmPanel[idx].monitorIndex !== this._monitorIndex) 
+        if (mmPanel) {
+            for (let idx in mmPanel) {
+                if (mmPanel[idx].monitorIndex !== this._monitorIndex) 
                     continue
                 // Add a clone of the panel to the overview so spacing and such is
                 // automatic
                 this._panelGhost = new St.Bin({
-                    child: new Clutter.Clone({ source: Main.mmPanel[idx] }),
+                    child: new Clutter.Clone({ source: mmPanel[idx] }),
                     reactive: false,
                     opacity: 0,
                 });
-                this.add_actor(this._panelGhost);
+                this.add_child(this._panelGhost);
                 break;
             }
         }
 
         this._spacer = new St.Widget();
-        this.add_actor(this._spacer);
+        this.add_child(this._spacer);
 
         this._controls = new MultiMonitorsControlsManager(this._monitorIndex);
 
@@ -629,7 +629,7 @@ class MultiMonitorsOverviewActor extends St.BoxLayout {
 });
 
 
-var MultiMonitorsOverview = class MultiMonitorsOverview {
+export var MultiMonitorsOverview = class MultiMonitorsOverview {
     constructor(index) {
         this.monitorIndex = index;
 

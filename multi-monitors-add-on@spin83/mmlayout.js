@@ -2,24 +2,20 @@
  * New node file
  */
 
-const { St, Meta } = imports.gi;
+import St from 'gi://St';
 
-const Main = imports.ui.main;
-const Panel = imports.ui.panel;
-const Layout = imports.ui.layout;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Panel from 'resource:///org/gnome/shell/ui/panel.js';
+import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 
-const Config = imports.misc.config;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const CE = ExtensionUtils.getCurrentExtension();
-const Convenience = CE.imports.convenience;
-const MultiMonitors = CE.imports.extension;
-const MMPanel = CE.imports.mmpanel;
+import * as MMPanel from './mmpanel.js'
+import {g, currentExtension} from './globals.js'
+var {mmPanel} = g
 
 var SHOW_PANEL_ID = 'show-panel';
 var ENABLE_HOT_CORNERS = 'enable-hot-corners';
 
-const MultiMonitorsPanelBox = class MultiMonitorsPanelBox {
+export const MultiMonitorsPanelBox = class MultiMonitorsPanelBox {
     constructor(monitor) {
         this.panelBox = new St.BoxLayout({ name: 'panelBox', vertical: true, clip_to_allocation: true });
         Main.layoutManager.addChrome(this.panelBox, { affectsStruts: true, trackFullscreen: true });
@@ -38,12 +34,12 @@ const MultiMonitorsPanelBox = class MultiMonitorsPanelBox {
     }
 };
 
-var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
+export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 	constructor() {
-		this._settings = Convenience.getSettings();
-		this._desktopSettings = Convenience.getSettings("org.gnome.desktop.interface");
+		this._settings = currentExtension().getSettings();
+		this._desktopSettings = currentExtension().getSettings("org.gnome.desktop.interface");
 
-		Main.mmPanel = [];
+		mmPanel = [];
 	
 		this._monitorIds = [];
 		this.mmPanelBox = [];
@@ -147,7 +143,7 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 		for (let i = 0; i < panels2remove; i++) {
 			let monitorId = this._monitorIds.pop();
 			this._popPanel();
-			global.log("remove: "+monitorId);
+			console.log("remove: "+monitorId);
 		}
 	}
 
@@ -157,7 +153,7 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 			for (let idx = 0; idx<-monitorChange; idx++) {
 				let monitorId = this._monitorIds.pop();
 				this._popPanel();
-				global.log("remove: "+monitorId);
+				console.log("remove: "+monitorId);
 			}
 		}
 		
@@ -170,14 +166,14 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 				if (monitorChange>0 && j==this._monitorIds.length) {
 					this._monitorIds.push(monitorId);
 					this._pushPanel(i, monitor);
-					global.log("new: "+monitorId);
+					console.log("new: "+monitorId);
 					tIndicators = true;
 				}
 				else if (this._monitorIds[j]>monitorId || this._monitorIds[j]<monitorId) {
 					let oldMonitorId = this._monitorIds[j];
 					this._monitorIds[j]=monitorId;
 					this.mmPanelBox[j].updatePanel(monitor);
-					global.log("update: "+oldMonitorId+">"+monitorId);
+					console.log("update: "+oldMonitorId+">"+monitorId);
 				}
 				j++;
 			}
@@ -192,12 +188,12 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 		let mmPanelBox = new MultiMonitorsPanelBox(monitor);
 		let panel = new MMPanel.MultiMonitorsPanel(i, mmPanelBox);
 		
-		Main.mmPanel.push(panel);
+		mmPanel.push(panel);
 		this.mmPanelBox.push(mmPanelBox);
 	}
 
 	_popPanel() {
-		let panel = Main.mmPanel.pop();
+		let panel = mmPanel.pop();
 		if (this.statusIndicatorsController) {
 			this.statusIndicatorsController.transferBack(panel);
 		}
@@ -209,6 +205,8 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 		let role = "appMenu";
 		let panel = Main.panel;
 		let indicator = panel.statusArea[role];
+		if (!indicator) // TODO: Fix this
+			return
 		panel.menuManager.removeMenu(indicator.menu);
 		indicator.destroy();
 		if (indicator._actionGroupNotifyId) {
@@ -230,7 +228,7 @@ var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 	}
 
 	_showAppMenu() {
-		if (this._settings.get_boolean(MMPanel.SHOW_APP_MENU_ID) && Main.mmPanel.length>0) {
+		if (this._settings.get_boolean(MMPanel.SHOW_APP_MENU_ID) && mmPanel.length>0) {
 			if (!this.mmappMenu) {
 				this._changeMainPanelAppMenuButton(MMPanel.MultiMonitorsAppMenuButton);
 				this.mmappMenu = true;
