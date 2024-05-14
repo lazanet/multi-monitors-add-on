@@ -29,7 +29,6 @@ export const SHOW_PANEL_ID = 'show-panel';
 export const SHOW_ACTIVITIES_ID = 'show-activities';
 export const SHOW_APP_MENU_ID = 'show-app-menu';
 export const SHOW_DATE_TIME_ID = 'show-date-time';
-export const THUMBNAILS_SLIDER_POSITION_ID = 'thumbnails-slider-position';
 export const AVAILABLE_INDICATORS_ID = 'available-indicators';
 export const TRANSFER_INDICATORS_ID = 'transfer-indicators';
 export const ENABLE_HOT_CORNERS = 'enable-hot-corners';
@@ -59,15 +58,7 @@ class MultiMonitorsPrefsWidget extends Gtk.Grid {
 
         this._addBooleanSwitch(_('Show Multi Monitors indicator on Top Panel.'), SHOW_INDICATOR_ID);
         this._addBooleanSwitch(_('Show Panel on additional monitors.'), SHOW_PANEL_ID);
-        this._addBooleanSwitch(_('Show Activities-Button on additional monitors.'), SHOW_ACTIVITIES_ID);
-        this._addBooleanSwitch(_('Show AppMenu-Button on additional monitors.'), SHOW_APP_MENU_ID);
-        this._addBooleanSwitch(_('Show DateTime-Button on additional monitors.'), SHOW_DATE_TIME_ID);
-        this._addComboBoxSwitch(_('Show Thumbnails-Slider on additional monitors.'), THUMBNAILS_SLIDER_POSITION_ID, {
-            none: _('No'),
-            right: _('On the right'),
-            left: _('On the left'),
-            auto: _('Auto')
-        });
+
         this._addSettingsBooleanSwitch(_('Enable hot corners.'), this._desktopSettings, ENABLE_HOT_CORNERS);
 
         this._store = new Gtk.ListStore();

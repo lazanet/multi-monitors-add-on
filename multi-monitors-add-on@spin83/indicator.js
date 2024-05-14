@@ -22,9 +22,9 @@ import GObject from 'gi://GObject';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import {currentExtension} from './globals.js'
+import { currentExtension } from './globals.js'
 
-import {gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 export var MultiMonitorsIndicator = (() => {
     let MultiMonitorsIndicator = class MultiMonitorsIndicator extends PanelMenu.Button {

@@ -10,7 +10,6 @@ export var g = {
     mmPanel: []
 }
 
-
 export function currentExtension() {
     let extension = g?.EXTENSION ? g.EXTENSION : Extension.lookupByUUID(g.UUID);
     g["EXTENSION"] = extension;
@@ -22,9 +21,6 @@ export function unhideClass(classId) {
     return tmp;
 }
 
-/** 
- * This function does all the copying of objects from one panel to another.
-*/
 export function copyClass(s, d) {
     if (!s) {
         console.error(`copyClass s undefined for d ${d.name}`)
