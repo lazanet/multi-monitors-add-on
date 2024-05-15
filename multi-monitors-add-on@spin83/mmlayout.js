@@ -5,7 +5,6 @@
 import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as Panel from 'resource:///org/gnome/shell/ui/panel.js';
 import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 
 import * as MMPanel from './mmpanel.js'
@@ -43,12 +42,9 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 
 		this._monitorIds = [];
 		this.mmPanelBox = [];
-		this.mmappMenu = false;
 
-		this._showAppMenuId = null;
 		this._monitorsChangedId = null;
 
-		this.statusIndicatorsController = null;
 		this._layoutManager_updateHotCorners = null;
 		this._changedEnableHotCornersId = null;
 	}
@@ -58,13 +54,6 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 			if (!this._monitorsChangedId) {
 				this._monitorsChangedId = Main.layoutManager.connect('monitors-changed', this._monitorsChanged.bind(this));
 				this._monitorsChanged();
-			}
-			if (!this._showAppMenuId) {
-				this._showAppMenuId = this._settings.connect('changed::' + MMPanel.SHOW_APP_MENU_ID, this._showAppMenu.bind(this));
-			}
-
-			if (!this.statusIndicatorsController) {
-				this.statusIndicatorsController = new MMPanel.StatusIndicatorsController();
 			}
 
 			if (!this._layoutManager_updateHotCorners) {
@@ -123,17 +112,6 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 			Main.layoutManager._updateHotCorners();
 		}
 
-		if (this.statusIndicatorsController) {
-			this.statusIndicatorsController.destroy();
-			this.statusIndicatorsController = null;
-		}
-
-		if (this._showAppMenuId) {
-			this._settings.disconnect(this._showAppMenuId);
-			this._showAppMenuId = null;
-		}
-		this._hideAppMenu();
-
 		if (this._monitorsChangedId) {
 			Main.layoutManager.disconnect(this._monitorsChangedId);
 			this._monitorsChangedId = null;
@@ -158,7 +136,6 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 		}
 
 		let j = 0;
-		let tIndicators = false;
 		for (let i = 0; i < Main.layoutManager.monitors.length; i++) {
 			if (i != Main.layoutManager.primaryIndex) {
 				let monitor = Main.layoutManager.monitors[i];
@@ -167,7 +144,6 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 					this._monitorIds.push(monitorId);
 					this._pushPanel(i, monitor);
 					console.log("new: " + monitorId);
-					tIndicators = true;
 				}
 				else if (this._monitorIds[j] > monitorId || this._monitorIds[j] < monitorId) {
 					let oldMonitorId = this._monitorIds[j];
@@ -177,10 +153,6 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 				}
 				j++;
 			}
-		}
-		this._showAppMenu();
-		if (tIndicators && this.statusIndicatorsController) {
-			this.statusIndicatorsController.transferIndicators();
 		}
 	}
 
@@ -193,57 +165,8 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 	}
 
 	_popPanel() {
-		let panel = mmPanel.pop();
-		if (this.statusIndicatorsController) {
-			this.statusIndicatorsController.transferBack(panel);
-		}
+		mmPanel.pop();
 		let mmPanelBox = this.mmPanelBox.pop();
 		mmPanelBox.destroy();
-	}
-
-	_changeMainPanelAppMenuButton(appMenuButton) {
-		let role = "appMenu";
-		let panel = Main.panel;
-		let indicator = panel.statusArea[role];
-		if (!indicator) // TODO: Fix this
-			return
-		panel.menuManager.removeMenu(indicator.menu);
-		indicator.destroy();
-		if (indicator._actionGroupNotifyId) {
-			indicator._targetApp.disconnect(indicator._actionGroupNotifyId);
-			indicator._actionGroupNotifyId = 0;
-		}
-		if (indicator._busyNotifyId) {
-			indicator._targetApp.disconnect(indicator._busyNotifyId);
-			indicator._busyNotifyId = 0;
-		}
-		if (indicator.menu._windowsChangedId) {
-			indicator.menu._app.disconnect(indicator.menu._windowsChangedId);
-			indicator.menu._windowsChangedId = 0;
-		}
-		indicator = new appMenuButton(panel);
-		panel.statusArea[role] = indicator;
-		let box = panel._leftBox;
-		panel._addToPanelBox(role, indicator, box.get_n_children() + 1, box);
-	}
-
-	_showAppMenu() {
-		if (this._settings.get_boolean(MMPanel.SHOW_APP_MENU_ID) && mmPanel.length > 0) {
-			if (!this.mmappMenu) {
-				this._changeMainPanelAppMenuButton(MMPanel.MultiMonitorsAppMenuButton);
-				this.mmappMenu = true;
-			}
-		}
-		else {
-			this._hideAppMenu();
-		}
-	}
-
-	_hideAppMenu() {
-		if (this.mmappMenu) {
-			this._changeMainPanelAppMenuButton(Panel.AppMenuButton);
-			this.mmappMenu = false;
-			Main.panel._updatePanel()
-		}
 	}
 };

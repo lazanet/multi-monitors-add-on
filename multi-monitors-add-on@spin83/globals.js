@@ -2,18 +2,11 @@ import GObject from 'gi://GObject';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 export var g = {
-    EXTENSION: null,
-    UUID: "multi-monitors-add-on@spin83",
-    mmIndicator: null,
-    mmLayoutManager: null,
-    mmOverview: null,
     mmPanel: []
 }
 
 export function currentExtension() {
-    let extension = g?.EXTENSION ? g.EXTENSION : Extension.lookupByUUID(g.UUID);
-    g["EXTENSION"] = extension;
-    return extension
+    return Extension.lookupByUUID("multi-monitors-add-on@spin83");
 }
 
 export function unhideClass(classId) {

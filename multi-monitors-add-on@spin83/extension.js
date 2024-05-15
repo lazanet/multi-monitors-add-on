@@ -15,48 +15,42 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, visit https://www.gnu.org/licenses/.
 */
 
-import Gio from 'gi://Gio';
-
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-
-import {g} from './globals.js'
-var {mmIndicator, mmLayoutManager} = g
 
 import * as MMLayout from './mmlayout.js'
 import * as MMIndicator from './indicator.js'
 
-// const OVERRIDE_SCHEMA = 'org.gnome.shell.overrides';
-const MUTTER_SCHEMA = 'org.gnome.mutter';
-
 const SHOW_INDICATOR_ID = 'show-indicator';
+
 export default class MultiMonitorsAddOn extends Extension {
 
     constructor(metadata) {
         super(metadata);
         this._settings = this.getSettings();
-        this._mu_settings = new Gio.Settings({ schema: MUTTER_SCHEMA });
 
-        this._mmMonitors = 0;
-        this.syncWorkspacesActualGeometry = null;
+        this.mmIndicator = null;
+        this.mmLayoutManager = null;
+    }
+
+    _toggleIndicator() {
+        if (this._settings.get_boolean(SHOW_INDICATOR_ID))
+            this._showIndicator();
+        else
+            this._hideIndicator();
     }
 
     _showIndicator() {
-        if (this._settings.get_boolean(SHOW_INDICATOR_ID)) {
-            if (!mmIndicator) {
-                mmIndicator = Main.panel.addToStatusArea('MultiMonitorsAddOn', new MMIndicator.MultiMonitorsIndicator());
-            }
-        }
-        else {
-            this._hideIndicator();
-        }
+        if (this.mmIndicator)
+            return;
+        this.mmIndicator = Main.panel.addToStatusArea('MultiMonitorsAddOn', new MMIndicator.MultiMonitorsIndicator());
     }
 
     _hideIndicator() {
-        if (mmIndicator) {
-            mmIndicator.destroy();
-            mmIndicator = null;
-        }
+        if (!this.mmIndicator)
+            return
+        this.mmIndicator.destroy();
+        this.mmIndicator = null;
     }
 
     enable() {
@@ -65,28 +59,21 @@ export default class MultiMonitorsAddOn extends Extension {
         if (Main.panel.statusArea.MultiMonitorsAddOn)
             disable();
 
-        this._mmMonitors = 0;
+        this._toggleIndicatorId = this._settings.connect('changed::' + SHOW_INDICATOR_ID, this._toggleIndicator.bind(this));
+        this._toggleIndicator();
 
-
-        this._showIndicatorId = this._settings.connect('changed::' + SHOW_INDICATOR_ID, this._showIndicator.bind(this));
-        this._showIndicator();
-
-        mmLayoutManager = new MMLayout.MultiMonitorsLayoutManager();
-        this._showPanelId = this._settings.connect('changed::' + MMLayout.SHOW_PANEL_ID, mmLayoutManager.showPanel.bind(mmLayoutManager));
-        mmLayoutManager.showPanel();
+        this.mmLayoutManager = new MMLayout.MultiMonitorsLayoutManager();
+        this._showPanelId = this._settings.connect('changed::' + MMLayout.SHOW_PANEL_ID, this.mmLayoutManager.showPanel.bind(this.mmLayoutManager));
+        this.mmLayoutManager.showPanel();
     }
 
     disable() {
         this._settings.disconnect(this._showPanelId);
-        this._settings.disconnect(this._showIndicatorId);
-
-
+        this._settings.disconnect(this._toggleIndicatorId);
         this._hideIndicator();
 
-        mmLayoutManager.hidePanel();
-        mmLayoutManager = null;
-
-        this._mmMonitors = 0;
+        this.mmLayoutManager.hidePanel();
+        this.mmLayoutManager = null;
 
         console.log(`Disabled ${this.metadata.name} ...`)
     }
