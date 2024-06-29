@@ -16,7 +16,7 @@ Fork of https://github.com/spin83/multi-monitors-add-on rewritten (almost) from 
 
 ```sh
 # clone repo
-git clone git@github.com:lazanet/multi-monitors-add-on.git
+git clone https://github.com/lazanet/multi-monitors-add-on.git
 # cd into cloned repo
 cd multi-monitors-add-on
 # create a local shared gnome shell extensions dir
