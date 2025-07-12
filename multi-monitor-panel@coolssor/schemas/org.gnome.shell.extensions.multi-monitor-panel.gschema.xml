@@ -1,0 +1,59 @@
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.multi-monitor-panel" path="/org/gnome/shell/extensions/multi-monitor-panel/">
+
+	<key name="show-indicator" type="b">
+      <default>true</default>
+      <summary>Show extension indicator on top panel.</summary>
+      <description>Add or remove the Multi-monitor panel extension indicator from top panel.</description>
+    </key>
+
+    <key name="show-panel" type="b">
+      <default>true</default>
+      <summary>Show panel on additional monitors.</summary>
+      <description>Add or remove the top panel from additional monitors.</description>
+    </key>
+
+    <key name="show-activities" type="b">
+      <default>true</default>
+      <summary>Show Activities button on additional monitors.</summary>
+      <description>Change visibility of the Activities button on additional monitors.</description>
+    </key>
+    
+    <key name="show-app-menu" type="b">
+      <default>true</default>
+      <summary>Show App menu button on additional monitors.</summary>
+      <description>Change visibility of the App menu button on additional monitors.</description>
+    </key>
+    
+    <key name="show-date-time" type="b">
+      <default>true</default>
+      <summary>Show date/time button on additional monitors.</summary>
+      <description>Change visibility of the date/time button on additional monitors.</description>
+    </key>
+
+    <key name="thumbnails-slider-position" type="s">
+      <choices>
+        <choice value='none'/>
+        <choice value='right'/>
+        <choice value='left'/>
+        <choice value='auto'/>
+      </choices>
+      <default>'auto'</default>
+      <summary>Show thumbnails slider on additional monitors.</summary>
+      <description>Select position of thumbnails slider on additional monitors.</description>
+    </key>
+    
+	<key name="available-indicators" type="as">
+      <default>[]</default>
+      <summary>A list of available indicators.</summary>
+      <description>A list of indicators that are available for transfer. For internal use only.</description>
+    </key>
+    
+	<key name="transfer-indicators" type="a{si}">
+      <default>{}</default>
+      <summary>A list of indicators for transfer.</summary>
+      <description>A list of indicators selected for transfer to additional panels.</description>
+    </key>
+    
+  </schema>
+</schemalist>
