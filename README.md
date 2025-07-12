@@ -18,6 +18,7 @@ Once completed, restart the shell (log out and back in, or run `killall -HUP gno
  - Integration with other extensions:
     - [Open Bar](https://github.com/neuromorph/openbar) (theming, floating panel, etc)
     - [Hide Top Bar](https://gitlab.gnome.org/tuxor1337/hidetopbar) (Intellihide)
+    - Re-do translation (because I need to learn how to do it properly)
 
 ## License
 
