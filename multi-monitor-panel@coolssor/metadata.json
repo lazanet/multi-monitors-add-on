@@ -1,0 +1,10 @@
+{
+    "shell-version": ["45", "46", "47", "48"],
+    "uuid": "multi-monitor-panel@coolssor",
+    "name": "Multi-monitor panel",
+    "settings-schema": "org.gnome.shell.extensions.multi-monitor-panel",
+    "gettext-domain": "multi-monitor-panel",
+    "description": "Show the GNOME top panel on all monitors",
+    "url": "https://github.com/coolssor/multi-monitor-panel",
+    "version": 1
+}
