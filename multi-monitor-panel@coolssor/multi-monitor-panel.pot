@@ -1,0 +1,89 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the multi-monitor-panel package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: multi-monitor-panel\n"
+"Report-Msgid-Bugs-To: https://github.com/coolssor/multi-monitor-panel/"
+"issues\n"
+"POT-Creation-Date: 2019-10-04 04:44-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: indicator.js:46
+msgid "Preferences"
+msgstr ""
+
+#: indicator.js:115
+msgid "Multi-monitor panel"
+msgstr ""
+
+#: mmoverview.js:642
+msgid "Overview"
+msgstr ""
+
+#. Translators: If there is no suitable word for "Activities"
+#. in your language, you can use the word for "Overview".
+#: mmpanel.js:333
+msgid "Activities"
+msgstr ""
+
+#: mmpanel.js:414
+msgid "Top bar"
+msgstr ""
+
+#: prefs.js:62
+msgid "Show extension indicator on top panel."
+msgstr ""
+
+#: prefs.js:63
+msgid "Show panel on additional monitors."
+msgstr ""
+
+#: prefs.js:64
+msgid "Show thumbnails slider on additional monitors."
+msgstr ""
+
+#: prefs.js:65
+msgid "Show Activities button on additional monitors."
+msgstr ""
+
+#: prefs.js:66
+msgid "Show App menu button on additional monitors."
+msgstr ""
+
+#: prefs.js:67
+msgid "Show date/time button on additional monitors."
+msgstr ""
+
+#: prefs.js:68
+msgid "Show thumbnails slider on left side of additional monitors."
+msgstr ""
+
+#: prefs.js:77
+msgid "A list of indicators for transfer to additional monitors."
+msgstr ""
+
+#: prefs.js:124
+msgid "Select indicator"
+msgstr ""
+
+#: prefs.js:127
+msgid "Add"
+msgstr ""
+
+#: prefs.js:141
+msgid "Indicators on top panel"
+msgstr ""
+
+#: prefs.js:170
+msgid "Monitor index:"
+msgstr ""
