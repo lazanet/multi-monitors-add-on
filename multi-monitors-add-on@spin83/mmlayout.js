@@ -47,10 +47,15 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 
 		this._layoutManager_updateHotCorners = null;
 		this._changedEnableHotCornersId = null;
+
+		this._origAddToStatusArea = null;
+		this._mirroredIndicators = new Map();
 	}
 
 	showPanel() {
 		if (this._settings.get_boolean(SHOW_PANEL_ID)) {
+			this._enableIndicatorMirroring();
+
 			if (!this._monitorsChangedId) {
 				this._monitorsChangedId = Main.layoutManager.connect('monitors-changed', this._monitorsChanged.bind(this));
 				this._monitorsChanged();
@@ -101,6 +106,8 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 	}
 
 	hidePanel() {
+		this._disableIndicatorMirroring();
+
 		if (this._changedEnableHotCornersId) {
 			global.settings.disconnect(this._changedEnableHotCornersId);
 			this._changedEnableHotCornersId = null;
@@ -154,19 +161,187 @@ export var MultiMonitorsLayoutManager = class MultiMonitorsLayoutManager {
 				j++;
 			}
 		}
+
+		this._syncMirroredIndicators();
 	}
 
 	_pushPanel(i, monitor) {
 		let mmPanelBox = new MultiMonitorsPanelBox(monitor);
 		let panel = new MMPanel.MultiMonitorsPanel(i, mmPanelBox);
 
+		panel.connect('destroy', () => this._removePanelFromMirrors(panel));
+
 		mmPanel.push(panel);
 		this.mmPanelBox.push(mmPanelBox);
+
+		this._syncMirroredIndicators();
 	}
 
 	_popPanel() {
 		mmPanel.pop();
 		let mmPanelBox = this.mmPanelBox.pop();
 		mmPanelBox.destroy();
+	}
+
+	_enableIndicatorMirroring() {
+		if (this._origAddToStatusArea)
+			return;
+
+		this._origAddToStatusArea = Main.panel.addToStatusArea;
+		Main.panel.addToStatusArea = (role, indicator, position, box) => {
+			let addedIndicator = this._origAddToStatusArea.call(Main.panel, role, indicator, position, box);
+			this._mirrorIndicator(role, indicator, position, box);
+			return addedIndicator;
+		};
+
+		this._mirrorExistingIndicators();
+	}
+
+	_disableIndicatorMirroring() {
+		for (let [role, record] of this._mirroredIndicators.entries()) {
+			if (record.destroyId)
+				record.source.disconnect(record.destroyId);
+
+			for (let clone of record.clones.values()) {
+				try {
+					clone.destroy();
+				} catch (e) {
+					console.error(e);
+				}
+			}
+		}
+
+		this._mirroredIndicators.clear();
+
+		if (this._origAddToStatusArea) {
+			Main.panel.addToStatusArea = this._origAddToStatusArea;
+			this._origAddToStatusArea = null;
+		}
+	}
+
+	_mirrorExistingIndicators() {
+		Object.entries(Main.panel.statusArea).forEach(([role, indicator]) => {
+			if (!indicator)
+				return;
+			let { position, box } = this._getIndicatorPlacement(indicator);
+			this._mirrorIndicator(role, indicator, position, box);
+		});
+	}
+
+	_shouldMirrorIndicator(role, indicator) {
+		if (!indicator || !indicator.container)
+			return false;
+
+		return role.startsWith('appindicator-');
+	}
+
+	_getIndicatorPlacement(indicator) {
+		let container = indicator.container;
+		let parent = container?.get_parent();
+
+		let box = 'right';
+		if (parent === Main.panel._leftBox)
+			box = 'left';
+		else if (parent === Main.panel._centerBox)
+			box = 'center';
+
+		let position = 0;
+		if (parent) {
+			let children = parent.get_children();
+			position = children.indexOf(container);
+		}
+
+		return { position, box };
+	}
+
+	_mirrorIndicator(role, indicator, position, box) {
+		if (!this._shouldMirrorIndicator(role, indicator))
+			return;
+
+		if (this._mirroredIndicators.has(role))
+			this._removeIndicatorMirrors(role);
+
+		let placement = this._getIndicatorPlacement(indicator);
+		let record = {
+			source: indicator,
+			position: position ?? placement.position,
+			box: box ?? placement.box,
+			clones: new Map(),
+			destroyId: indicator.connect('destroy', () => this._removeIndicatorMirrors(role)),
+		};
+
+		this._mirroredIndicators.set(role, record);
+		this._addClonesForIndicator(role, record);
+	}
+
+	_addClonesForIndicator(role, record) {
+		mmPanel.forEach(panel => {
+			if (!panel || record.clones.has(panel))
+				return;
+
+			let clone = this._createIndicatorClone(record.source);
+			if (!clone)
+				return;
+
+			try {
+				panel.addToStatusArea(role, clone, record.position, record.box);
+				record.clones.set(panel, clone);
+			} catch (e) {
+				console.error(e);
+				clone.destroy();
+			}
+		});
+	}
+
+	_createIndicatorClone(indicator) {
+		try {
+			if (indicator.constructor?.name === 'IndicatorStatusIcon' && indicator._indicator)
+				return new indicator.constructor(indicator._indicator);
+
+			if (indicator.constructor?.name === 'IndicatorStatusTrayIcon' && indicator._icon)
+				return new indicator.constructor(indicator._icon);
+		} catch (e) {
+			console.error(e);
+		}
+
+		return null;
+	}
+
+	_removeIndicatorMirrors(role) {
+		let record = this._mirroredIndicators.get(role);
+		if (!record)
+			return;
+
+		for (let clone of record.clones.values()) {
+			try {
+				clone.destroy();
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		if (record.destroyId)
+			record.source.disconnect(record.destroyId);
+
+		this._mirroredIndicators.delete(role);
+	}
+
+	_removePanelFromMirrors(panel) {
+		for (let record of this._mirroredIndicators.values()) {
+			let clone = record.clones.get(panel);
+			if (clone) {
+				try {
+					clone.destroy();
+				} catch (e) {
+					console.error(e);
+				}
+				record.clones.delete(panel);
+			}
+		}
+	}
+
+	_syncMirroredIndicators() {
+		for (let [role, record] of this._mirroredIndicators.entries())
+			this._addClonesForIndicator(role, record);
 	}
 };
